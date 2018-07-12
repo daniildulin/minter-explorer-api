@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"explorer-api/env"
+	"explorer-api/services/minterapi"
 )
 
 var Version string   // Version
@@ -28,4 +29,6 @@ func main() {
 		fmt.Printf("%s v%s Commit %s builded %s\n", AppName, Version, GitCommit, BuildDate)
 		os.Exit(0)
 	}
+
+	minterapi.Run(config)
 }
