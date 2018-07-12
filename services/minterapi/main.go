@@ -5,13 +5,14 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"strings"
 
 	"encoding/json"
-	"explorer-api/env"
-
 	"github.com/jinzhu/gorm"
-	"strings"
+
+	"explorer-api/env"
 	"explorer-api/models/block"
+	transactionModel "explorer-api/models/transaction"
 )
 
 var httpClient = &http.Client{Timeout: 10 * time.Second}
@@ -85,7 +86,7 @@ func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
 
 func storeBlockToDB(db *gorm.DB, blockData *blockResult) {
 
-	blk := block.Model{
+	blockModel := block.Model{
 		Hash:        strings.Title(blockData.Hash),
 		Height:      blockData.Height,
 		TxCount:     blockData.TxCount,
@@ -94,7 +95,48 @@ func storeBlockToDB(db *gorm.DB, blockData *blockResult) {
 		BlockReward: 0,
 	}
 
-	blk.CreatedAt = blockData.Time
+	blockModel.CreatedAt = blockData.Time
 
-	db.Create(&blk)
+	db.Create(&blockModel)
+
+	if blockModel.TxCount > 0 {
+		saveTransactionToDB(db, blockModel.Height, blockData.Time, blockData.Transactions)
+	}
+}
+
+func saveTransactionToDB(db *gorm.DB, blockHeight uint, blockTime time.Time, transactions []transaction) {
+
+	for _, tx := range transactions {
+		t := transactionModel.Model{
+			BlockID:              blockHeight,
+			Hash:                 strings.Title(tx.Hash),
+			From:                 strings.Title(tx.From),
+			Type:                 tx.Type,
+			Nonce:                tx.Nonce,
+			GasPrice:             tx.GasPrice,
+			Gas:                  tx.Gas,
+			Payload:              tx.Payload,
+			ServiceData:          tx.ServiceData,
+			CreatedAt:            blockTime,
+			To:                   tx.Data.To,
+			Address:              tx.Data.Address,
+			FromCoinSymbol:       tx.Data.FromCoinSymbol,
+			ToCoinSymbol:         tx.Data.ToCoinSymbol,
+			Name:                 tx.Data.Name,
+			Symbol:               tx.Data.Symbol,
+			Stake:                tx.Data.Stake,
+			Value:                tx.Data.Value,
+			Commission:           tx.Data.Commission,
+			InitialAmount:        tx.Data.InitialAmount,
+			InitialReserve:       tx.Data.InitialReserve,
+			ConstantReserveRatio: tx.Data.ConstantReserveRatio,
+			RawCheck:             tx.Data.RawCheck,
+			Proof:                tx.Data.Proof,
+			Coin:                 tx.Data.Coin,
+			PubKey:               tx.Data.PubKey,
+		}
+
+		db.Create(&t)
+	}
+
 }
