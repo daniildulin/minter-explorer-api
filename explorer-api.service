@@ -1,0 +1,17 @@
+[Unit]
+Description=Minter Explorer API service
+Wants=network-online.target
+Requires=docker.service
+After=docker.service network.target network-online.target
+
+[Service]
+TimeoutStartSec=10
+Restart=always
+RestartSec=15s
+WorkingDirectory=/srv
+ExecStartPre-=/srv/minter/explorer-api -update
+ExecStart=/srv/minter/explorer-api
+#ExecStop=/usr/bin/docker stop explorer-api
+
+[Install]
+WantedBy=multi-user.target

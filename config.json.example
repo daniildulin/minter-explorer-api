@@ -1,0 +1,11 @@
+{
+    "name": "Minter Explorer API",
+    "debug": true,
+    "database": {
+      "url": "postgres://postgres:postgres@localhost/postgres?sslmode=disable"
+    },
+    "server": {
+      "address": ":9000"
+    },
+     "minterApi": ""
+}
