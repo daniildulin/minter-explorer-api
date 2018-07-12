@@ -1,5 +1,5 @@
 hash: 5e0177e9dd4527e04d070a257a4b997315bc6a391869b2a3dba1d9f348c6f735
-updated: 2018-07-11T21:07:48.547766+03:00
+updated: 2018-07-12T17:22:56.947003+03:00
 imports:
 - name: github.com/fsnotify/fsnotify
   version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
@@ -15,6 +15,17 @@ imports:
   - json/parser
   - json/scanner
   - json/token
+- name: github.com/jinzhu/gorm
+  version: 6ed508ec6a4ecb3531899a69cbc746ccf65a4166
+  subpackages:
+  - dialects/postgres
+- name: github.com/jinzhu/inflection
+  version: 04140366298a54a039076d798123ffa108fff46c
+- name: github.com/lib/pq
+  version: 017e4c14d80628353eaee677a1aeffe47a10c0dc
+  subpackages:
+  - hstore
+  - oid
 - name: github.com/magiconair/properties
   version: 2c9e9502788518c97fe44e8955cd069417ee89df
 - name: github.com/mitchellh/mapstructure
