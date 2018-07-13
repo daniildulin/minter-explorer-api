@@ -1,0 +1,11 @@
+package transaction
+
+const TYPE_SEND = 1
+const TYPE_CONVERT = 2
+const TYPE_CREATE_COIN = 3
+const TYPE_DECLARE_CANDIDACY = 4
+const TYPE_DELEGATE = 5
+const TYPE_UNBOUND = 6
+const TYPE_REDEEM_CHECK = 7
+const TYPE_SET_CANDIDATE_ONLINE = 8
+const TYPE_SET_CANDIDATE_OFFLINE = 9

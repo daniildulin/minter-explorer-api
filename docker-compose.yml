@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.6'
 
 services:
   db:
@@ -8,7 +8,7 @@ services:
         - 54325:5432
     environment:
         POSTGRES_DB: explorer_db
-        POSTGRES_USER: explore_adm
+        POSTGRES_USER: explorer_adm
         POSTGRES_PASSWORD: password
     volumes:
         - ./db_data:/var/lib/postgresql/data
