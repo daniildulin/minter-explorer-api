@@ -17,7 +17,7 @@ type Model struct {
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time
 
-	Transactions []transaction.Model
+	Transactions []transaction.Model `gorm:"foreignkey:block_id"`
 }
 
 func (Model) TableName() string {

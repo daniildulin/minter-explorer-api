@@ -15,6 +15,11 @@ type blockResponse struct {
 	Result blockResult `json:"result"`
 }
 
+type validatorsResponse struct {
+	Code   uint        `json:"code"`
+	Result []validator `json:"result"`
+}
+
 type statusResult struct {
 	LatestBlockHash   []byte `json:"latest_block_hash"`
 	LatestAppHash     []byte `json:"latest_app_hash"`
@@ -59,4 +64,12 @@ type transactionData struct {
 	InitialReserve       *big.Int `json:"initial_reserve"`
 	FromCoinSymbol       *string  `json:"from_coin"`
 	ConstantReserveRatio *uint    `json:"constant_reserve_ratio"`
+}
+
+type validator struct {
+	Address           string `json:"candidate_address"`
+	PubKey            string `json:"pub_key"`
+	TotalStake        uint   `json:"total_stake"`
+	Commission        uint   `json:"commission"`
+	AccumulatedReward uint   `json:"accumulated_reward"`
 }

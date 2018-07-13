@@ -72,13 +72,13 @@ func getLastBlockFromDB(db *gorm.DB) uint {
 // Store data to DB
 func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
 	apiLink := `http://` + config.GetString("minterApi") + `/api/block/` + fmt.Sprint(blockHeight)
-	response := blockResponse{}
-	getJson(apiLink, &response)
+	blockResponse := blockResponse{}
+	getJson(apiLink, &blockResponse)
 
-	storeBlockToDB(db, &response.Result)
+	storeBlockToDB(db, &blockResponse.Result)
 
 	if config.GetBool(`debug`) {
-		log.Printf("Block: %d; Txs: %d; Hash: %s", response.Result.Height, response.Result.TxCount, response.Result.Hash)
+		log.Printf("Block: %d; Txs: %d; Hash: %s", blockResponse.Result.Height, blockResponse.Result.TxCount, blockResponse.Result.Hash)
 	}
 
 	return nil
@@ -90,25 +90,27 @@ func storeBlockToDB(db *gorm.DB, blockData *blockResult) {
 		Hash:        strings.Title(blockData.Hash),
 		Height:      blockData.Height,
 		TxCount:     blockData.TxCount,
+		CreatedAt:   blockData.Time,
 		Size:        0,
 		BlockTime:   5, //TODO: добавить расчет
 		BlockReward: 0,
 	}
 
-	blockModel.CreatedAt = blockData.Time
+	if blockModel.TxCount > 0 {
+		blockModel.Transactions = getTransactionModelsFromApiData(blockModel.TxCount, blockData.Time, blockData.Transactions)
+	}
 
 	db.Create(&blockModel)
 
-	if blockModel.TxCount > 0 {
-		saveTransactionToDB(db, blockModel.Height, blockData.Time, blockData.Transactions)
-	}
 }
 
-func saveTransactionToDB(db *gorm.DB, blockHeight uint, blockTime time.Time, transactions []transaction) {
+func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactions []transaction) []transactionModel.Model {
 
+	var result = make([]transactionModel.Model, count)
+
+	i := 0
 	for _, tx := range transactions {
-		t := transactionModel.Model{
-			BlockID:              blockHeight,
+		result[i] = transactionModel.Model{
 			Hash:                 strings.Title(tx.Hash),
 			From:                 strings.Title(tx.From),
 			Type:                 tx.Type,
@@ -135,8 +137,7 @@ func saveTransactionToDB(db *gorm.DB, blockHeight uint, blockTime time.Time, tra
 			Coin:                 tx.Data.Coin,
 			PubKey:               tx.Data.PubKey,
 		}
-
-		db.Create(&t)
 	}
 
+	return result
 }
