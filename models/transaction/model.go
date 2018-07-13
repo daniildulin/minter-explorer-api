@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Model struct {
+type Transaction struct {
 	ID                   uint     `gorm:"primary_key"`
 	BlockID              uint     `json:"block_id"`
 	Type                 uint     `json:"type"`
@@ -35,8 +35,4 @@ type Model struct {
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
 	DeletedAt            *time.Time
-}
-
-func (Model) TableName() string {
-	return "transactions"
 }

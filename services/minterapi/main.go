@@ -13,29 +13,31 @@ import (
 	"explorer-api/env"
 	"explorer-api/models/block"
 	transactionModel "explorer-api/models/transaction"
+	validatorModel "explorer-api/models/validator"
+	validatorRepository "explorer-api/repositories/validator"
 )
 
-var httpClient = &http.Client{Timeout: 10 * time.Second}
+var httpClient = &http.Client{Timeout: 5 * time.Second}
 
 func Run(config env.Config, db *gorm.DB) {
 
-	lastDBBlock := getLastBlockFromDB(db)
+	currentDBBlock := getLastBlockFromDB(db) + 1
 
 	lastApiBlock := getLastBlockFromMinterAPI(config)
 
 	log.Printf("Connect to %s", config.GetString("minterApi"))
 
-	log.Printf("Start from block %d", lastDBBlock)
+	log.Printf("Start from block %d", currentDBBlock)
 
 	for {
-		if lastDBBlock <= lastApiBlock {
+		if currentDBBlock <= lastApiBlock {
 			start := time.Now()
-			storeDataToDb(config, db, lastDBBlock)
+			storeDataToDb(config, db, currentDBBlock)
 			elapsed := time.Since(start)
-			lastDBBlock++
+			currentDBBlock++
 
 			if config.GetBool(`debug`) {
-				log.Printf("Time of processing %s for block %s", elapsed, fmt.Sprint(lastDBBlock))
+				log.Printf("Time of processing %s for block %s", elapsed, fmt.Sprint(currentDBBlock))
 			}
 
 		} else {
@@ -64,7 +66,7 @@ func getLastBlockFromMinterAPI(config env.Config) uint {
 }
 
 func getLastBlockFromDB(db *gorm.DB) uint {
-	var b block.Model
+	var b block.Block
 	db.Last(&b)
 	return b.Height
 }
@@ -75,7 +77,12 @@ func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
 	blockResponse := blockResponse{}
 	getJson(apiLink, &blockResponse)
 
-	storeBlockToDB(db, &blockResponse.Result)
+	validatorsResponse := validatorsResponse{}
+	apiLink = `http://` + config.GetString("minterApi") + `/api/validators/?height=` + fmt.Sprint(blockHeight)
+	getJson(apiLink, &validatorsResponse)
+	validators := getValidatorModels(db, validatorsResponse.Result)
+
+	storeBlockToDB(db, &blockResponse.Result, validators)
 
 	if config.GetBool(`debug`) {
 		log.Printf("Block: %d; Txs: %d; Hash: %s", blockResponse.Result.Height, blockResponse.Result.TxCount, blockResponse.Result.Hash)
@@ -84,9 +91,9 @@ func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
 	return nil
 }
 
-func storeBlockToDB(db *gorm.DB, blockData *blockResult) {
+func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []validatorModel.Validator) {
 
-	blockModel := block.Model{
+	blockModel := block.Block{
 		Hash:        strings.Title(blockData.Hash),
 		Height:      blockData.Height,
 		TxCount:     blockData.TxCount,
@@ -100,17 +107,20 @@ func storeBlockToDB(db *gorm.DB, blockData *blockResult) {
 		blockModel.Transactions = getTransactionModelsFromApiData(blockModel.TxCount, blockData.Time, blockData.Transactions)
 	}
 
+	if len(validators) > 0 {
+		blockModel.Validators = validators
+	}
+
 	db.Create(&blockModel)
 
 }
 
-func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactions []transaction) []transactionModel.Model {
+func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactions []transaction) []transactionModel.Transaction {
 
-	var result = make([]transactionModel.Model, count)
-
+	var result = make([]transactionModel.Transaction, count)
 	i := 0
 	for _, tx := range transactions {
-		result[i] = transactionModel.Model{
+		result[i] = transactionModel.Transaction{
 			Hash:                 strings.Title(tx.Hash),
 			From:                 strings.Title(tx.From),
 			Type:                 tx.Type,
@@ -140,4 +150,27 @@ func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactio
 	}
 
 	return result
+}
+
+func getValidatorModels(db *gorm.DB, validatorsData []validator) []validatorModel.Validator {
+
+	var result []validatorModel.Validator
+
+	if len(validatorsData) > 0 {
+		for _, v := range validatorsData {
+			var vld validatorModel.Validator
+			vld = validatorRepository.GetByPubKey(db, v.PubKey)
+			if vld.ID == 0 && len(v.PubKey) > 10 {
+				result = append(result, validatorModel.Validator{
+					Address: v.Address,
+					PubKey:  v.PubKey,
+				})
+			} else if vld.ID != 0 {
+				result = append(result, vld)
+			}
+
+		}
+		return result
+	}
+	return nil
 }

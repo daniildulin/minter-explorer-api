@@ -13,6 +13,7 @@ import (
 	"explorer-api/helpers"
 	"explorer-api/models/transaction"
 	"explorer-api/models/block"
+	"explorer-api/models/validator"
 )
 
 var Version string   // Version
@@ -52,5 +53,6 @@ func main() {
 func migrate(db *gorm.DB) {
 	// Use GORM automigrate for models
 	fmt.Println("Automigrate database schema.")
-	db.AutoMigrate(&block.Model{}, &transaction.Model{})
+	db.AutoMigrate(&block.Block{}, &transaction.Transaction{}, &validator.Validator{})
+	db.Exec("CREATE TABLE IF NOT EXISTS block_validator( block_id INT NOT NULL, validator_id INT NOT NULL)")
 }
