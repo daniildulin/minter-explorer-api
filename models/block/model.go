@@ -12,7 +12,7 @@ type Block struct {
 	TxCount      uint                  `json:"num_txs"`
 	Size         uint                  `json:"size"`
 	BlockTime    uint                  `json:"block_time"`
-	BlockReward  uint                  `json:"block_reward" gorm:"type:numeric(50, 0)"`
+	BlockReward  string                `json:"block_reward" gorm:"type:numeric(50, 0)"`
 	Hash         string                `json:"hash" gorm:"type:bytea"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
