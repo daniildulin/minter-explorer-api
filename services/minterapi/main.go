@@ -12,12 +12,14 @@ import (
 
 	"explorer-api/env"
 	"explorer-api/models/block"
-	transactionModel "explorer-api/models/transaction"
+	"explorer-api/helpers"
+	minterReward "explorer-api/mintersdk/reward"
 	validatorModel "explorer-api/models/validator"
+	transactionModel "explorer-api/models/transaction"
 	validatorRepository "explorer-api/repositories/validator"
 )
 
-var httpClient = &http.Client{Timeout: 5 * time.Second}
+var httpClient = &http.Client{Timeout: 1 * time.Second}
 
 func Run(config env.Config, db *gorm.DB) {
 
@@ -94,13 +96,13 @@ func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
 func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []validatorModel.Validator) {
 
 	blockModel := block.Block{
-		Hash:        strings.Title(blockData.Hash),
+		Hash:        blockData.Hash,
 		Height:      blockData.Height,
 		TxCount:     blockData.TxCount,
 		CreatedAt:   blockData.Time,
 		Size:        0,
 		BlockTime:   getBlockTime(db, blockData.Height, blockData.Time),
-		BlockReward: 0,
+		BlockReward: getBlockReward(blockData.Height),
 	}
 
 	if blockModel.TxCount > 0 {
@@ -190,4 +192,12 @@ func getBlockTime(db *gorm.DB, currentBlockHeight uint, blockTime time.Time) uin
 	}
 
 	return uint(result)
+}
+
+func getBlockReward(blockHeight uint) string {
+
+	blockReward, err := minterReward.Get(blockHeight)
+	helpers.CheckErr(err)
+
+	return blockReward.String()
 }
