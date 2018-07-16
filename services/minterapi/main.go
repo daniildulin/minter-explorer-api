@@ -99,7 +99,7 @@ func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []validatorM
 		TxCount:     blockData.TxCount,
 		CreatedAt:   blockData.Time,
 		Size:        0,
-		BlockTime:   5, //TODO: добавить расчет
+		BlockTime:   getBlockTime(db, blockData.Height, blockData.Time),
 		BlockReward: 0,
 	}
 
@@ -160,7 +160,7 @@ func getValidatorModels(db *gorm.DB, validatorsData []validator) []validatorMode
 		for _, v := range validatorsData {
 			var vld validatorModel.Validator
 			vld = validatorRepository.GetByPubKey(db, v.PubKey)
-			if vld.ID == 0 && len(v.PubKey) > 10 {
+			if vld.ID == 0 && len(v.PubKey) > 0 {
 				result = append(result, validatorModel.Validator{
 					Address: v.Address,
 					PubKey:  v.PubKey,
@@ -173,4 +173,21 @@ func getValidatorModels(db *gorm.DB, validatorsData []validator) []validatorMode
 		return result
 	}
 	return nil
+}
+
+func getBlockTime(db *gorm.DB, currentBlockHeight uint, blockTime time.Time) uint {
+
+	if currentBlockHeight == 1 {
+		return 5
+	}
+
+	var b block.Block
+	db.Where("height = ?", currentBlockHeight-1).First(&b)
+
+	result := blockTime.Second() - b.CreatedAt.Second()
+	if result < 0 {
+		return 5
+	}
+
+	return uint(result)
 }
