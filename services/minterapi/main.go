@@ -14,8 +14,8 @@ import (
 	"github.com/daniildulin/explorer-api/helpers"
 	minterReward "github.com/daniildulin/explorer-api/mintersdk/reward"
 	"github.com/daniildulin/explorer-api/models/block"
-	transactionModel "github.com/daniildulin/explorer-api/models/transaction"
-	validatorModel "github.com/daniildulin/explorer-api/models/validator"
+	modelTransaction "github.com/daniildulin/explorer-api/models/transaction"
+	modelValidator "github.com/daniildulin/explorer-api/models/validator"
 	validatorRepository "github.com/daniildulin/explorer-api/repositories/validator"
 )
 
@@ -98,7 +98,7 @@ func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
 	return nil
 }
 
-func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []validatorModel.Validator) {
+func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []modelValidator.Validator) {
 
 	if blockData.Height <= 0 {
 		return
@@ -127,12 +127,12 @@ func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []validatorM
 
 }
 
-func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactions []transaction) []transactionModel.Transaction {
+func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactions []transaction) []modelTransaction.Transaction {
 
-	var result = make([]transactionModel.Transaction, count)
+	var result = make([]modelTransaction.Transaction, count)
 	i := 0
 	for _, tx := range transactions {
-		result[i] = transactionModel.Transaction{
+		result[i] = modelTransaction.Transaction{
 			Hash:                 strings.Title(tx.Hash),
 			From:                 strings.Title(tx.From),
 			Type:                 tx.Type,
@@ -164,16 +164,16 @@ func getTransactionModelsFromApiData(count uint, blockTime time.Time, transactio
 	return result
 }
 
-func getValidatorModels(db *gorm.DB, validatorsData []validator) []validatorModel.Validator {
+func getValidatorModels(db *gorm.DB, validatorsData []validator) []modelValidator.Validator {
 
-	var result []validatorModel.Validator
+	var result []modelValidator.Validator
 
 	if len(validatorsData) > 0 {
 		for _, v := range validatorsData {
-			var vld validatorModel.Validator
+			var vld modelValidator.Validator
 			vld = validatorRepository.GetByPubKey(db, v.PubKey)
 			if vld.ID == 0 && len(v.PubKey) > 0 {
-				result = append(result, validatorModel.Validator{
+				result = append(result, modelValidator.Validator{
 					Address: v.Address,
 					PubKey:  v.PubKey,
 				})
