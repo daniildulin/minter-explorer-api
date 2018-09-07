@@ -8,12 +8,12 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 
-	"explorer-api/env"
-	"explorer-api/services/minterapi"
-	"explorer-api/helpers"
-	"explorer-api/models/transaction"
-	"explorer-api/models/block"
-	"explorer-api/models/validator"
+	"github.com/daniildulin/explorer-api/env"
+	"github.com/daniildulin/explorer-api/helpers"
+	"github.com/daniildulin/explorer-api/models/block"
+	"github.com/daniildulin/explorer-api/models/transaction"
+	"github.com/daniildulin/explorer-api/models/validator"
+	"github.com/daniildulin/explorer-api/services/minterapi"
 )
 
 var Version string   // Version

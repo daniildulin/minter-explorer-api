@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"explorer-api/models/validator"
+	"github.com/daniildulin/explorer-api/models/validator"
 	"github.com/jinzhu/gorm"
 )
 

@@ -45,25 +45,42 @@ type transaction struct {
 	Payload     string          `json:"payload"`
 	ServiceData string          `json:"serviceData"`
 	Data        transactionData `json:"data"`
+	TxResult    *txResultData   `json:"tx_result"`
 }
 
 type transactionData struct {
-	To                   *string  `json:"to"`
 	Coin                 *string  `json:"coin"`
-	Name                 *string  `json:"name"`
+	To                   *string  `json:"to"`
 	Value                *big.Int `json:"value"`
-	Stake                *big.Int `json:"Stake"`
-	Proof                *string  `json:"Proof"`
+	CoinToSell           *string  `json:"coin_to_sell"`
+	CoinToBuy            *string  `json:"coin_to_buy"`
+	ValueToSell          *big.Int `json:"value_to_sell"`
+	ValueToBuy           *big.Int `json:"value_to_buy"`
+	Name                 *string  `json:"name"`
 	Symbol               *string  `json:"coin_symbol"`
-	PubKey               *string  `json:"PubKey"`
-	Address              *string  `json:"Address"`
-	RawCheck             *string  `json:"RawCheck"`
-	Commission           *uint    `json:"Commission"`
-	ToCoinSymbol         *string  `json:"to_coin"`
 	InitialAmount        *big.Int `json:"initial_amount"`
 	InitialReserve       *big.Int `json:"initial_reserve"`
-	FromCoinSymbol       *string  `json:"from_coin"`
 	ConstantReserveRatio *uint    `json:"constant_reserve_ratio"`
+	Address              *string  `json:"address"`
+	PubKey               *string  `json:"pub_key"`
+	Commission           *uint    `json:"commission"`
+	Stake                *big.Int `json:"stake"`
+	Proof                *string  `json:"proof"`
+	RawCheck             *string  `json:"raw_check"`
+	ToCoinSymbol         *string  `json:"to_coin_symbol"`
+	FromCoinSymbol       *string  `json:"from_coin_symbol"`
+}
+
+type txResultData struct {
+	GasWanted *uint   `json:"gas_wanted"`
+	GasUsed   *uint   `json:"gas_used"`
+	Log       *string `json:"log"`
+	Code      *uint   `json:"code"`
+	//Tags      *[]txResultTag `json:"tags"`
+}
+type txResultTag struct {
+	Key   *string `json:"key"`
+	Value *string `json:"value"`
 }
 
 type validator struct {

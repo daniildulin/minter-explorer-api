@@ -1,8 +1,8 @@
 package reward
 
 import (
+	"github.com/daniildulin/explorer-api/mintersdk/converter"
 	"math/big"
-	"explorer-api/mintersdk/converter"
 )
 
 // Total blocks for reward

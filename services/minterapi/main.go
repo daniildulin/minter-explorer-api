@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 
 	"encoding/json"
 	"github.com/jinzhu/gorm"
 
-	"explorer-api/env"
-	"explorer-api/models/block"
-	"explorer-api/helpers"
-	minterReward "explorer-api/mintersdk/reward"
-	validatorModel "explorer-api/models/validator"
-	transactionModel "explorer-api/models/transaction"
-	validatorRepository "explorer-api/repositories/validator"
+	"github.com/daniildulin/explorer-api/env"
+	"github.com/daniildulin/explorer-api/helpers"
+	minterReward "github.com/daniildulin/explorer-api/mintersdk/reward"
+	"github.com/daniildulin/explorer-api/models/block"
+	transactionModel "github.com/daniildulin/explorer-api/models/transaction"
+	validatorModel "github.com/daniildulin/explorer-api/models/validator"
+	validatorRepository "github.com/daniildulin/explorer-api/repositories/validator"
 )
 
 var httpClient = &http.Client{Timeout: 1 * time.Second}
@@ -48,6 +48,10 @@ func Run(config env.Config, db *gorm.DB) {
 	}
 }
 
+func getApiLink(config env.Config) string {
+	return `http://` + config.GetString("minterApi")
+}
+
 //Get JSON response from API
 func getJson(url string, target interface{}) error {
 
@@ -63,7 +67,7 @@ func getJson(url string, target interface{}) error {
 // Get last block height from Minter API
 func getLastBlockFromMinterAPI(config env.Config) uint {
 	statusResponse := statusResponse{}
-	getJson(`http://`+config.GetString("minterApi")+`/api/status`, &statusResponse)
+	getJson(getApiLink(config)+`/api/status`, &statusResponse)
 	return statusResponse.Result.LatestBlockHeight
 }
 
@@ -75,25 +79,31 @@ func getLastBlockFromDB(db *gorm.DB) uint {
 
 // Store data to DB
 func storeDataToDb(config env.Config, db *gorm.DB, blockHeight uint) error {
-	apiLink := `http://` + config.GetString("minterApi") + `/api/block/` + fmt.Sprint(blockHeight)
+	apiLink := getApiLink(config) + `/api/block/` + fmt.Sprint(blockHeight)
 	blockResponse := blockResponse{}
 	getJson(apiLink, &blockResponse)
+	blockResult := blockResponse.Result
 
 	validatorsResponse := validatorsResponse{}
-	apiLink = `http://` + config.GetString("minterApi") + `/api/validators/?height=` + fmt.Sprint(blockHeight)
+	apiLink = getApiLink(config) + `/api/validators/?height=` + fmt.Sprint(blockHeight)
 	getJson(apiLink, &validatorsResponse)
 	validators := getValidatorModels(db, validatorsResponse.Result)
 
-	storeBlockToDB(db, &blockResponse.Result, validators)
+	storeBlockToDB(db, &blockResult, validators)
 
 	if config.GetBool(`debug`) {
-		log.Printf("Block: %d; Txs: %d; Hash: %s", blockResponse.Result.Height, blockResponse.Result.TxCount, blockResponse.Result.Hash)
+		log.Printf("Block: %d; Txs: %d; Hash: %s", blockResult.Height, blockResult.TxCount, blockResponse.Result.Hash)
 	}
 
 	return nil
 }
 
 func storeBlockToDB(db *gorm.DB, blockData *blockResult, validators []validatorModel.Validator) {
+
+	if blockData.Height <= 0 {
+		return
+		log.Printf("Block: %d; Txs: %d; Hash: %s", blockData.Height, blockData.TxCount, blockData.Hash)
+	}
 
 	blockModel := block.Block{
 		Hash:        blockData.Hash,

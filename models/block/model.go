@@ -1,9 +1,9 @@
 package block
 
 import (
+	"github.com/daniildulin/explorer-api/models/transaction"
+	"github.com/daniildulin/explorer-api/models/validator"
 	"time"
-	"explorer-api/models/transaction"
-	"explorer-api/models/validator"
 )
 
 type Block struct {
